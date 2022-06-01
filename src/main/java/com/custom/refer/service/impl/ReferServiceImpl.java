@@ -27,32 +27,8 @@ public class ReferServiceImpl implements ReferService {
 		
 		for(Class clzz : classList) {
 			ControllerInfoVO controllerVO = null;
-			List<ApiInfoVO> apiList = new ArrayList<ApiInfoVO>();
-			for(Method method : clzz.getDeclaredMethods()) {
-				ApiInfoVO vo = null;
-				ResponseDtoInfoVO responseVO = null;
-				RequestDtoInfoVO requestVO = null;
-				List<RequestDtoInfoVO> tempRequestList = new ArrayList<RequestDtoInfoVO>();
-				List<ResponseDtoInfoVO> tempResponseList = new ArrayList<ResponseDtoInfoVO>();
-				
-				Class[] paramTypes = method.getParameterTypes();
-				for(Class c : paramTypes) {
-					String paramName = c.getName();
-					if(paramName.contains("DTO") && "DTO".equals(paramName.substring(paramName.length()-3))) {
-						for(Field f : c.getDeclaredFields()) {
-							requestVO = new RequestDtoInfoVO(f.getName(),f.getType().toString());
-							tempRequestList.add(requestVO);
-						}
-						break;
-					}
-				}
-				for(Field f : method.getReturnType().getDeclaredFields()) {
-					responseVO = new ResponseDtoInfoVO(f.getName(),f.getType().toString());
-					tempResponseList.add(responseVO);
-				}
-				vo = new ApiInfoVO(method.getName(), tempRequestList, tempResponseList);
-				apiList.add(vo);
-			}
+			List<ApiInfoVO> apiList = getApiList(clzz.getDeclaredMethods());
+			
 			controllerVO = new ControllerInfoVO(clzz.getName(), apiList);
 			result.add(controllerVO);
 		}
@@ -103,7 +79,7 @@ public class ReferServiceImpl implements ReferService {
 
 
 	@Override
-	public List<ApiInfoVO> getApiList(List<Method> methodList) throws Exception {
+	public List<ApiInfoVO> getApiList(Method[] methodList) throws Exception {
 		
 		List<ApiInfoVO> result = new ArrayList<ApiInfoVO>();
 		
