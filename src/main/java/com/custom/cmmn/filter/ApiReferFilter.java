@@ -43,7 +43,7 @@ public class ApiReferFilter extends TypeFilterWrapper{
 			ClassMetadata metaData = metadataReader.getClassMetadata();
 			String className = metaData.getClassName();
 			
-			if((className.contains("com.custom.refer") || className.contains("com.custom.api"))) {
+			if(className.contains("com.custom.api")) {
 				return true;
 			}
 			

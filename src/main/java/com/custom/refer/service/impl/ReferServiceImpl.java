@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.custom.cmmn.filter.ApiReferFilter;
 import com.custom.refer.service.ReferService;
+import com.custom.refer.vo.ApiInfoVO;
 import com.custom.refer.vo.ControllerInfoVO;
 import com.custom.refer.vo.RequestDtoInfoVO;
 import com.custom.refer.vo.ResponseDtoInfoVO;
@@ -20,14 +21,15 @@ import com.custom.refer.vo.ResponseDtoInfoVO;
 public class ReferServiceImpl implements ReferService {
 
 	@Override
-	public List<ControllerInfoVO> getControllerInfoList() throws Exception {
+	public List<ControllerInfoVO> getControllerInfoList(List<Class> classList) throws Exception {
 		
 		List<ControllerInfoVO> result = new ArrayList<ControllerInfoVO>();
-		List<Class> controllerList = getControllerList();
 		
-		for(Class clzz : controllerList) {
+		for(Class clzz : classList) {
+			ControllerInfoVO controllerVO = null;
+			List<ApiInfoVO> apiList = new ArrayList<ApiInfoVO>();
 			for(Method method : clzz.getDeclaredMethods()) {
-				ControllerInfoVO vo = null;
+				ApiInfoVO vo = null;
 				ResponseDtoInfoVO responseVO = null;
 				RequestDtoInfoVO requestVO = null;
 				List<RequestDtoInfoVO> tempRequestList = new ArrayList<RequestDtoInfoVO>();
@@ -48,16 +50,20 @@ public class ReferServiceImpl implements ReferService {
 					responseVO = new ResponseDtoInfoVO(f.getName(),f.getType().toString());
 					tempResponseList.add(responseVO);
 				}
-				vo = new ControllerInfoVO(clzz.getName(), method.getName(), tempRequestList, tempResponseList);
-				result.add(vo);
+				vo = new ApiInfoVO(method.getName(), tempRequestList, tempResponseList);
+				apiList.add(vo);
 			}
+			controllerVO = new ControllerInfoVO(clzz.getName(), apiList);
+			result.add(controllerVO);
 		}
 		
 		return result;
 	}
+	
+	
 
 	@Override
-	public List<Class> getControllerList() throws Exception {
+	public List<Class> getControllerClassList() throws Exception {
 		
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(true);
 		ApiReferFilter controllerFilter = new ApiReferFilter("ANNOTATION","CONTROLLER");
@@ -92,6 +98,42 @@ public class ReferServiceImpl implements ReferService {
 //		}
 		//
 //		return controllerList;
+	}
+
+
+
+	@Override
+	public List<ApiInfoVO> getApiList(List<Method> methodList) throws Exception {
+		
+		List<ApiInfoVO> result = new ArrayList<ApiInfoVO>();
+		
+		for(Method method : methodList) {
+			ApiInfoVO vo = null;
+			ResponseDtoInfoVO responseVO = null;
+			RequestDtoInfoVO requestVO = null;
+			List<RequestDtoInfoVO> tempRequestList = new ArrayList<RequestDtoInfoVO>();
+			List<ResponseDtoInfoVO> tempResponseList = new ArrayList<ResponseDtoInfoVO>();
+			
+			Class[] paramTypes = method.getParameterTypes();
+			for(Class c : paramTypes) {
+				String paramName = c.getName();
+				if(paramName.contains("DTO") && "DTO".equals(paramName.substring(paramName.length()-3))) {
+					for(Field f : c.getDeclaredFields()) {
+						requestVO = new RequestDtoInfoVO(f.getName(),f.getType().toString());
+						tempRequestList.add(requestVO);
+					}
+					break;
+				}
+			}
+			for(Field f : method.getReturnType().getDeclaredFields()) {
+				responseVO = new ResponseDtoInfoVO(f.getName(),f.getType().toString());
+				tempResponseList.add(responseVO);
+			}
+			vo = new ApiInfoVO(method.getName(), tempRequestList, tempResponseList);
+			result.add(vo);
+		}
+		
+		return null;
 	}
 
 }

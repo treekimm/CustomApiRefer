@@ -33,9 +33,10 @@ public class ReferController {
 	@ResponseBody ControllerListResponseDTO controllerList(ControllerListRequestDTO requestDTO, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		
-		List<ControllerInfoVO> Apilist = referService.getControllerInfoList();
+		List<Class> controllerClassList = referService.getControllerClassList();
+		List<ControllerInfoVO> controllerInfoList = referService.getControllerInfoList(controllerClassList);
 		
-		ControllerListResponseDTO result = new ControllerListResponseDTO(Apilist);
+		ControllerListResponseDTO result = new ControllerListResponseDTO(controllerInfoList);
 		
 		return result;
 	}
